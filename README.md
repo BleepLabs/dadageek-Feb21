@@ -1,2 +1,3 @@
-# dadageed-Feb21
-Code and notes for "Making Synths with Arduino"
+# dadageek-Feb21
+Code and notes for "Making Synths with Arduino"  
+
