@@ -1,4 +1,4 @@
-//If we want a second LED we need to have separate variables for some things
+//Using a button to change how the LED blinks
 
 //Variables will not have anything inherently in common because of their names. We could name them anything.
 // The variable names are only there to help us. The compiler gets rid of the names
@@ -18,13 +18,13 @@ unsigned long current_time; //will store how much time has elapsed since the Tee
 
 unsigned long rate1;  //how fast the LED1 will change
 unsigned long rate2 = 250; //how fast the LED2 will change
-//We can set the varible to a value here and not change it in the loop
+//We can set the variable to a value here and not change it in the loop
 
 int pot_value;  //store the reading from the potentiometer aka knob
 int pot_pin = A0;  //pins that can do analog readings start with A
 
 int button_reading;
-int button_pin = 5;
+int button_pin = 5; //any pin can read a button
 
 //This next part is where the code really begins. It uns just once after the Teensy resets.
 
@@ -33,7 +33,7 @@ void setup() { //The setup starts with this currly bracket here
   // set both LED pins as outputs
   pinMode(led1_pin, OUTPUT);
   pinMode(led2_pin, OUTPUT);
-  pinMode(button_pin, INPUT_PULLUP); //must be done for button pins. Make the defualt state for the pin HIGH and 1
+  pinMode(button_pin, INPUT_PULLUP); //must be done for button pins. It makes the default state for the pin HIGH and 1
 
   //you don't need to setup the pot pin as an input
 
@@ -51,20 +51,20 @@ void loop()
 
 
 
-  pot_value = analogRead(A0); //Read the analog voltage at pin A0. Returns 0 for 0 Volts and 1023 for the max voltage (3.3V)
+  pot_value = analogRead(pot_pin); //Read the analog voltage at the pin. Returns 0 for 0 Volts and 1023 for the max voltage (3.3V)
   rate1 = (pot_value * 2) + 10; //we can do any math on variables you can imagine.
 
   button_reading = digitalRead(button_pin); //read the status of button pin. Is it 0V or 3.3V.
   if (button_reading == 0) { //0 is pressed, 1 is not
-    rate1 = rate1 / 8; // mae it blink 8 times faster if the button is down. 
+    rate1 = rate1 / 8; // make it blink 8 times faster if the button is down. 
   }
 
-  //Has "interval1" amount of time past since we last executed this code contained in the curly brackets?
+  //Has "rate1" amount of time past since we last executed this code contained in the curly brackets?
   // If the current time minus the last time is bigger that the interval then this part of the code is run
   // If not then it doesn't and we do the next thing below the curly brackets
   //We're using milliseconds so a value of 1000 would make it turn on for 1 seconds then off for one
 
-  if (current_time - previous_time1 > rate1) { //has "interval1" amount of time past since we last executed this code?
+  if (current_time - previous_time1 > rate1) { //has "rate1" amount of time past since we last executed this code?
     previous_time1 = current_time; //if the statement is true remember the current time
 
     // if the LED is off turn it on and vice versa:
@@ -87,11 +87,11 @@ void loop()
   }
 
 
-  if (current_time - previous_time2 > rate2) { //has "interval2" amount of time past since we last executed this code?
+  if (current_time - previous_time2 > rate2) { //has "rate2" amount of time past since we last executed this code?
     previous_time2 = current_time;
 
     // if  LED2 is off turn it on and vice versa:
-    if (led2_state == LOW) { //you might see examples wtieen this way. it's exacrly the saem as 0 and 1
+    if (led2_state == LOW) { //you might see examples written this way. it's the same as 0 and 1
       led2_state = HIGH;
     }
     else {
