@@ -30,7 +30,7 @@ int pot_pin = A0;  //pins that start with A can do analog readings
 
 //This next part is where the code really begins. It runs just once after the Teensy resets.
 
-void setup() { //The setup starts with this curry bracket here
+void setup() { //The setup starts with this curly bracket here
   // Set the LED pin as an output
   pinMode(led_pin, OUTPUT);//This function has two inputs. The pin and the state we want it to be https://www.arduino.cc/reference/en/language/functions/digital-io/pinmode/
 
