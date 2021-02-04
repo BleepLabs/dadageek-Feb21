@@ -38,8 +38,8 @@ int pcellRaw, pcellSmooth;
 
 #define FELL 4
 #define ROSE 5
-#define IS_PRESSED 2
-#define NOT_PRESSED 3
+#define IS_PRESSED 0
+#define NOT_PRESSED 1
 
 #define  bounce_lockout_length 10
 byte first_time = 1;
