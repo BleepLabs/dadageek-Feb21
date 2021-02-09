@@ -23,6 +23,7 @@ byte mux_select, prev_mux_select;
 int raw_pot_reading[8];
 int sm_pot_reading[8];
 float pot_reading[8];
+int button_reading[8];
 int prev_button_reading[8];
 int button_state[8];
 uint32_t pm[8];
