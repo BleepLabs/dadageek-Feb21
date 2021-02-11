@@ -85,7 +85,7 @@ void loop() {
 
     //Here we print out the usage of the audio library
     // If we go over 90% processor usage or get near the value of memory blocks we set aside in the setup we'll have issues or crash.
-    // This pretty much all a copy paste
+     // If you're using too many block, jut increas the number up top untill you're over it by a few
     Serial.print("processor: ");
     Serial.print(AudioProcessorUsageMax());
     Serial.print("%    Memory: ");
