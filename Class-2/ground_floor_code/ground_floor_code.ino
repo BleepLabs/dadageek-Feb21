@@ -1,4 +1,4 @@
-//bleep base basic controls
+//use this as your starting point
 
 //Include means add code from another file. This allows use more functions
 #include "bleep_base.h" //must be included at the top
@@ -25,5 +25,7 @@ void setup() {
 void loop() {
   update_controls(); //run this first in the loop
   current_time = millis(); //then check the time
+
+   
 
 }// loop is over
