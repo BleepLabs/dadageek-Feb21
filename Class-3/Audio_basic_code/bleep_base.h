@@ -121,9 +121,9 @@ unsigned int smooth(byte sel, unsigned int samples, unsigned int raw_in) {
     }
   }
 
-  //I cahnged this to jsut 1 off the top and bottom
-  bottom = 1;
-  top = samples - 1;
+  //I cahnged this to jsut 2 off the top and bottom
+  bottom = 2;
+  top = samples - 2;
   k = 0;
   total = 0;
   for ( j = bottom; j < top; j++) {
@@ -198,8 +198,7 @@ void update_controls() {
     pcellRaw = adc->adc1->analogRead(A2);
     pcellSmooth = smooth(8, 7, pcellRaw);
     for (int m = 0; m < 8; m++) {
-
-      sm_pot_reading[m] = smooth(m, 5, raw_pot_reading[m]);
+      sm_pot_reading[m] = smooth(m, 11, raw_pot_reading[m]);
       if (sm_pot_reading[m] > high) {
         sm_pot_reading[m] = high;
       }
