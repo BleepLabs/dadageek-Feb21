@@ -38,7 +38,7 @@ float freq1;
 float freq2;
 float freq3;
 float freq4;
-float amp1,amp2;
+float amp1, amp2, amp3, amp4;
 
 void setup() {
   start_bleep_base(); //run this first in setup
@@ -58,12 +58,12 @@ void setup() {
 
   //headphone jack output volume. Goes from 0.0 to 1.0 but a 100% signal will clip over .8 or so.
   // For headphones it's pretty loud at .4
-  // There are lots of places we can change the final volume level. 
+  // There are lots of places we can change the final volume level.
   // For now lets set this one once and leave it alone.
   sgtl5000_1.volume(0.25);
 
   //The line out has a seperate level control but it's not meant to be adjusted like the volume function above.
-  // If you're not using the line out don't worry about it. 
+  // If you're not using the line out don't worry about it.
   sgtl5000_1.lineOutLevel(21); //11-32, the smaller the louder. 21 is about 2 Volts peak to peak
 
 
@@ -96,26 +96,31 @@ void loop() {
   update_controls();
   current_time = millis();
 
-  freq1=(1.0-potRead(0))*1000.0;
+  freq1 = (1.0 - potRead(0)) * 1000.0;
   //freq1=potRead(0)*1000.0;
   waveform1.frequency(freq1);
 
-  freq2=freq1*(potRead(1)+1.0);
+  freq2 = freq1 * (potRead(1) + 1.0);
   waveform2.frequency(freq2);
 
-  freq3=freq1*(potRead(2)+1.0);
+  freq3 = freq1 * (potRead(2) + 1.0);
   waveform3.frequency(freq3);
 
-  freq4=freq1*(potRead(3)+1.0);
+  freq4 = freq1 * (potRead(3) + 1.0);
   waveform4.frequency(freq4);
 
-/*
-  amp1=potRead(2)*.5;
-  mixer1.gain(0,amp1);
-  
-  amp2=potRead(3)*.5;
-  mixer1.gain(1,amp2);
-*/
+
+  amp1 = potRead(4) * .25;
+  mixer1.gain(0, amp1);
+
+  amp2 = potRead(5) * .25;
+  mixer1.gain(1, amp2);
+
+  amp3 = potRead(6) * .25;
+  mixer1.gain(2, amp3);
+
+  amp4 = potRead(7) * .25;
+  mixer1.gain(3, amp4);
 
   //We don't have to do anything in the loop since the audio library will jut keep doing what we told it in the setup
   if (current_time - prev_time[0] > 500) {
