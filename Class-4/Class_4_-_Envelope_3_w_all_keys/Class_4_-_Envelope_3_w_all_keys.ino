@@ -41,6 +41,9 @@ int prev_reading[6];
 float attack_adj, sustain_adj, release_adj;
 float freq1;
 float note_offset;
+float fiter_freq;
+float lfo_reading;
+float lfo_freq;
 
 void setup() {
   start_bleep_base(); //run this first in setup
@@ -68,7 +71,7 @@ void setup() {
   // See the tool for more info https://www.pjrc.com/teensy/gui/?info=AudioSynthWaveform
   waveform1.begin(1, 220.0, WAVEFORM_SAWTOOTH);
   waveform2.begin(1, 440.0, WAVEFORM_SAWTOOTH);
-  waveform3.begin(1, 440.0, WAVEFORM_SINE);
+  waveform3.begin(1, 0.5, WAVEFORM_SINE);
 
   filter1.frequency(12000);
   filter1.resonance(.7);
@@ -93,10 +96,9 @@ void loop() {
   current_time = millis();
 
 
-
   freq1 = potRead(4) * 500.0;
   waveform1.frequency((freq1)*note_offset);
-  waveform2.frequency((freq1 * 2.0)*note_offset);
+  waveform2.frequency((freq1 * 2.001)*note_offset);
 
   for (int j = 0; j < 6; j++) {
     prev_reading[j] = current_button_reading[j];
@@ -104,7 +106,7 @@ void loop() {
 
     if (prev_reading[j] == 1 && current_button_reading[j] == 0) {
       envelope1.noteOn();
-      note_offset = (j+1.0);
+      note_offset = (j + 1.0);
     }
 
     if (prev_reading[j] == 0 && current_button_reading[j] == 1) {
@@ -112,9 +114,18 @@ void loop() {
     }
   }
 
-
-
-
+  //fiter_freq = (potRead(5) * 10000.0)+(lfo_reading*200.0); //not great at high frequencies
+  fiter_freq = (potRead(5) * 10000.0) * (1.0 + (lfo_reading * 2.5));
+  if (fiter_freq > 15000) {
+    fiter_freq = 15000;
+  }
+  filter1.frequency(fiter_freq); //if we go over 18000 it freaks out
+    
+  if (peak1.available()) {
+    lfo_reading = peak1.read();
+  }
+  lfo_freq=potRead(6) * 10.0;
+  waveform3.frequency(lfo_freq);
 
 
   attack_adj = (1.0 - potRead(0)) * 1000.0;
@@ -129,20 +140,19 @@ void loop() {
   //We don't have to do anything in the loop since the audio library will jut keep doing what we told it in the setup
   if (current_time - prev_time[0] > 50) {
     prev_time[0] = current_time;
-    Serial.println(attack_adj);
-    Serial.println(release_adj);
-    Serial.println();
+    //Serial.println(attack_adj);
+    // Serial.println(release_adj);
+    Serial.println(lfo_reading);
 
-    //Here we print out the usage of the audio library
-    // If we go over 90% processor usage or get near the value of memory blocks we set aside in the setup we'll have issues or crash.
-    // If you're using too many block, jut increas the number up top untill you're over it by a few
-    Serial.print("processor: ");
-    Serial.print(AudioProcessorUsageMax());
-    Serial.print("%    Memory: ");
-    Serial.print(AudioMemoryUsageMax());
-    Serial.println();
-    AudioProcessorUsageMaxReset(); //We need to reset these values so we get a real idea of what the audio code is doing rather than just peaking in every half a second
-    AudioMemoryUsageMaxReset();
+    if (0) {//cahge this to 1 and it'll print 
+      Serial.print("processor: ");
+      Serial.print(AudioProcessorUsageMax());
+      Serial.print("%    Memory: ");
+      Serial.print(AudioMemoryUsageMax());
+      Serial.println();
+      AudioProcessorUsageMaxReset(); //We need to reset these values so we get a real idea of what the audio code is doing rather than just peaking in every half a second
+      AudioMemoryUsageMaxReset();
+    }
   }
 
 }// loop is over
