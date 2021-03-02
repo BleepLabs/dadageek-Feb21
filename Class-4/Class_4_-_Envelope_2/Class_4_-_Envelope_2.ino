@@ -36,9 +36,9 @@ AudioControlSGTL5000     sgtl5000_1;     //xy=614.4999389648438,388
 //then you can declare any variables you want.
 unsigned long current_time;
 unsigned long prev_time[8]; //an array of 8 variables all named "prev_time"
-int current_button_reading;
-int prev_reading;
-float attack_adj,sustain_adj,release_adj;
+int current_button_reading[6];
+int prev_reading[6];
+float attack_adj, sustain_adj, release_adj;
 
 void setup() {
   start_bleep_base(); //run this first in setup
@@ -89,24 +89,39 @@ void setup() {
 void loop() {
   update_controls();
   current_time = millis();
-  
-  prev_reading = current_button_reading;
-  current_button_reading=buttonRead(0);
 
-  if (prev_reading==1 && current_button_reading==0){
+  prev_reading[0] = current_button_reading[0];
+  current_button_reading[0] = buttonRead(0);
+
+  if (prev_reading[0] == 1 && current_button_reading[0] == 0) {
     envelope1.noteOn();
+    waveform1.frequency(220.0);
+    waveform2.frequency(220.0 * 2.0);
   }
-  if (prev_reading==0 && current_button_reading==1){
+  
+  if (prev_reading[0] == 0 && current_button_reading[0] == 1) {
     envelope1.noteOff();
   }
 
-  attack_adj=(1.0-potRead(0))*1000.0;
+  prev_reading[1] = current_button_reading[1];
+  current_button_reading[1] = buttonRead(1);
+
+  if (prev_reading[1] == 1 && current_button_reading[1] == 0) {
+    envelope1.noteOn();
+    waveform1.frequency(233.0819);
+    waveform2.frequency(233.0819 * 2.0);
+  }
+  if (prev_reading[1] == 0 && current_button_reading[1] == 1) {
+    envelope1.noteOff();
+  }
+
+  attack_adj = (1.0 - potRead(0)) * 1000.0;
   envelope1.attack(attack_adj);
 
-  release_adj=(1.0-potRead(1))*2500.0;
+  release_adj = (1.0 - potRead(1)) * 2500.0;
   envelope1.release(release_adj);
 
-  
+
 
 
   //We don't have to do anything in the loop since the audio library will jut keep doing what we told it in the setup
@@ -115,7 +130,7 @@ void loop() {
     Serial.println(attack_adj);
     Serial.println(release_adj);
     Serial.println();
-    
+
     //Here we print out the usage of the audio library
     // If we go over 90% processor usage or get near the value of memory blocks we set aside in the setup we'll have issues or crash.
     // If you're using too many block, jut increas the number up top untill you're over it by a few
