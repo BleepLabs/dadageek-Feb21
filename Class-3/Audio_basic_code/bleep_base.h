@@ -63,14 +63,14 @@ void start_bleep_base() {
   pinMode(ctrl_pin3, OUTPUT);
 
   adc->adc0->setAveraging(8);
-  adc->adc0->setResolution(12); // teensy 4 is 10b 0-1023
+  adc->adc0->setResolution(10); // teensy 4 is 10b 0-1023
   // it can be any of the ADC_MED_SPEED enum: VERY_LOW_SPEED, LOW_SPEED, MED_SPEED, HIGH_SPEED or VERY_HIGH_SPEED
 
   adc->adc0->setConversionSpeed(ADC_CONVERSION_SPEED::LOW_SPEED); // change the conversion speed
   adc->adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::LOW_SPEED); // change the sampling speed
 
   adc->adc1->setAveraging(8);
-  adc->adc1->setResolution(12); // teensy 4 is 10b 0-1023
+  adc->adc1->setResolution(10); // teensy 4 is 10b 0-1023
   // it can be any of the ADC_MED_SPEED enum: VERY_LOW_SPEED, LOW_SPEED, MED_SPEED, HIGH_SPEED or VERY_HIGH_SPEED
 
   adc->adc1->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED); // change the conversion speed
@@ -85,7 +85,7 @@ void start_bleep_base() {
 // It throws out the top and bottom 15% of readings and averages the rest
 
 #define maxarrays 9 //max number of different variables to smooth
-#define maxsamples 13 //max number of points to sample and 
+#define maxsamples 21 //max number of points to sample and 
 //reduce these numbers to save RAM
 
 unsigned int smoothArray[maxarrays][maxsamples];
@@ -122,8 +122,8 @@ unsigned int smooth(byte sel, unsigned int samples, unsigned int raw_in) {
   }
 
   //I cahnged this to jsut 2 off the top and bottom
-  bottom = 2;
-  top = samples - 2;
+  bottom = 3;
+  top = samples - 3;
   k = 0;
   total = 0;
   for ( j = bottom; j < top; j++) {
@@ -153,7 +153,7 @@ float potReadSmooth(byte sel) {
   return sm_pot_reading[sel];
 }
 float pcellRead() {
-  return pcellSmooth / 4095.0;
+  return pcellSmooth / 1023.0;
 }
 
 int buttonState(byte num) {
@@ -179,6 +179,9 @@ void update_controls() {
       bounce_time[mux_select] = millis();
       if (prev_button_reading[mux_select] == 1 && button_reading[mux_select] == 0) {
         button_state[mux_select] = FELL;
+        //  Serial.print(mux_select);
+        //  Serial.println(" fell");
+
       }
       if (prev_button_reading[mux_select] == 0 && button_reading[mux_select] == 1) {
         button_state[mux_select] = ROSE;
@@ -192,13 +195,13 @@ void update_controls() {
     bounce_latch[mux_select] = 0;
     // Serial.print(mux_select);      Serial.println("rst");
   }
-  float high = 4084.0; //12 bits should be 4095 but withg the resistance of the mux it doens't quite get there
+  float high = 1023.0;
   if (cm - pm[2] > 3) {
     pm[2] = cm;
     pcellRaw = adc->adc1->analogRead(A2);
     pcellSmooth = smooth(8, 7, pcellRaw);
     for (int m = 0; m < 8; m++) {
-      sm_pot_reading[m] = smooth(m, 11, raw_pot_reading[m]);
+      sm_pot_reading[m] = smooth(m, 15, raw_pot_reading[m]);
       if (sm_pot_reading[m] > high) {
         sm_pot_reading[m] = high;
       }
@@ -208,7 +211,7 @@ void update_controls() {
     delayMicroseconds(2000);
     raw_pot_reading[mux_select] = high - adc->adc0->analogRead(analog_pin1);
     pinMode(analog_pin1, OUTPUT);
-    
+
     if (first_time == 1) {
       button_reading[mux_select] = 1;
       prev_button_reading[mux_select] = 1;
