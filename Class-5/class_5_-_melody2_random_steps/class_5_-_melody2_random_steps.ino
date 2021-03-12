@@ -40,8 +40,7 @@ int pos_b = 50;
 int inc1;
 int major_inc1;
 int melody_rate;
-int direction1, prev_direction1;
-
+int direction1;
 int dice1, dice2, diceses3;
 
 void setup() {
@@ -86,11 +85,12 @@ void setup() {
   // .5 would be half volume and 2 would be double
   // Since we have two oscillators coming in that are already "1" We should take them down by half so we don't clip.
   // If you go over "1" The top or bottom of the wave is just slammed against a wall
-  mixer1.gain(0, 1);
-  mixer1.gain(1, 0);
+  mixer1.gain(0, .5);
+  mixer1.gain(1, .5);
   mixer1.gain(2, 0);
   mixer1.gain(3, 0);
-  inc1 = pos_a; //you can only set a varible equal to another in setup or loop. Cant do it in initilization zone above
+
+  inc1 = pos_a; //you can only set a variable equal to another in setup or loop. You cant do it in initialization section above
 } //setup is over
 
 void loop() {
@@ -101,8 +101,6 @@ void loop() {
   pos_a = potRead(1) * 50.0;
   pos_b = potRead(2) * 50.0;
 
-  prev_direction1 = direction1;
-
   if (pos_a > pos_b) {
     direction1 = 1;
   }
@@ -110,42 +108,31 @@ void loop() {
     direction1 = 0;
   }
 
-  if (prev_direction1 != direction1) { // we can only chnge waves once. We need to do it when direectio ncahnges
-    if (direction1 == 1) {
-      waveform1.begin(WAVEFORM_SAWTOOTH);
-    }
-    if (direction1 == 0) {
-      waveform1.begin(WAVEFORM_SINE);
-    }
-  }
-
-  if (current_time - prev_time[1] > melody_rate) { // chage frequence ever 200 milliseconds
+  if (current_time - prev_time[1] > melody_rate) { /
     prev_time[1] = current_time;
 
-    if (direction1 == 1) { //notes are rising...
-      dice1 = random(0, 5); //0-4
-      inc1 += dice1; //same as saying inc1=inc1+2;
-      if (inc1 > pos_a) { //.. so we only need to check when it hits the top.
+    if (direction1 == 1) {
+      dice1 = random(0, 5); //(low value, high value) returns 0,1,2,3, or 4 the top value is not included but the bottom one is 
+      inc1 += dice1; //same as inc1 = inc1 + dice1
+      if (inc1 > pos_a) { 
         inc1 = pos_b;
       }
     }
 
     if (direction1 == 0) {
-      dice2 = random(0, 4); //0-3
-      inc1 -= dice2; //same as saying inc1=inc1-2;
+      dice2 = random(0, 4); //0,1,2, or 3
+      inc1 -= dice2; 
 
       if (inc1 < pos_a) {
         inc1 = pos_b;
       }
     }
 
-    ///diceses3 = random(pos_a, pos_b);
-    //major_inc1 = major[diceses3];
+
     major_inc1 = major[inc1];
 
     freq[0] = chromatic[major_inc1];
-    freq[1] = chromatic[major_inc1] / 2.01; // locted togeter, one is an octae down
-    //freq[1] = chromatic[major_inc1] + 200.0; //sounds odd and they move at seperate rates
+    freq[1] = chromatic[major_inc1] / 2.01; 
     waveform1.frequency(freq[0]);
     waveform2.frequency(freq[1]);
 

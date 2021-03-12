@@ -79,10 +79,8 @@ void setup() {
   //This next group can be done anywhere in the code but we want to start things with these
   // values and change some of them in the loop.
 
-  //Notice we start by writing the object we want, then a period, then the function
   // begin(volume from 0.0-1.0 , frequency , shape of oscillator)
-  // See the tool for more info https://www.pjrc.com/teensy/gui/?info=AudioSynthWaveform
-  waveform1.begin(1, 100.0, WAVEFORM_SINE);
+  waveform1.begin(1, 100.0, WAVEFORM_SINE); //we set their amplitudes like this to approximate a ramp wave
   waveform2.begin(.9, 100.0, WAVEFORM_SINE);
   waveform3.begin(.8, 100.0, WAVEFORM_SINE);
   waveform4.begin(.7, 100.0, WAVEFORM_SINE);
@@ -115,7 +113,7 @@ void setup() {
 
 } //setup is over
 
-float xfade1, xfade2;
+float xfade1, xfade2;  //you can initialize variables here as long as you don't need them in setup. 
 float freq[8];
 
 void loop() {
@@ -123,7 +121,8 @@ void loop() {
   current_time = millis();
 
   freq[1] = potRead(0) * 500.0;
-  waveform1.frequency(freq[1]);
+  // it would be nice if we could do this with a "for" and use the increment to select the array of waveforms but the audio objects dont work like that easily.
+  waveform1.frequency(freq[1]); 
   waveform2.frequency(freq[1] * 2.0);
   waveform3.frequency(freq[1] * 3.0);
   waveform4.frequency(freq[1] * 4.0);
@@ -141,6 +140,7 @@ void loop() {
     mixer1.gain(0, xfade1);
     mixer1.gain(1, xfade2);
   */
+
   if (current_time - prev_time[0] > 50 && 1) {
     prev_time[0] = current_time;
     Serial.print("processor: ");

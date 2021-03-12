@@ -38,17 +38,9 @@ int melody1[8] = {15, 22, 12, 14, 22, 15, 17, 30};
 int pos_a = 20;
 int pos_b = 50;
 int inc1;
-int modulo_inc1;
-int major_inc1, melody_inc1;
+int major_inc1;
 int melody_rate;
-int direction1, prev_direction1;
-int ra1, ra2;
-int dice1, dice2, diceses3;
-int current_button_reading[6];
-int prev_reading[6];
-int random_mode, playback_mode;
-int final_inc1;
-float hue1; 
+int direction1;
 
 void setup() {
   start_bleep_base(); //run this first in setup
@@ -72,7 +64,7 @@ void setup() {
   // For now lets set this one once and leave it alone.
   sgtl5000_1.volume(0.25);
 
-  //The line out has a seperate level control but it's not meant to be adjusted like the volume function above.
+  //The line out has a separate level control but it's not meant to be adjusted like the volume function above.
   // If you're not using the line out don't worry about it.
   sgtl5000_1.lineOutLevel(21); //11-32, the smaller the louder. 21 is about 2 Volts peak to peak
 
@@ -92,127 +84,64 @@ void setup() {
   // .5 would be half volume and 2 would be double
   // Since we have two oscillators coming in that are already "1" We should take them down by half so we don't clip.
   // If you go over "1" The top or bottom of the wave is just slammed against a wall
-  mixer1.gain(0, 1);
-  mixer1.gain(1, 0);
+  mixer1.gain(0, .5);
+  mixer1.gain(1, .5);
   mixer1.gain(2, 0);
   mixer1.gain(3, 0);
-  inc1 = pos_a; //you can only set a varible equal to another in setup or loop. Cant do it in initilization zone above
-} //setup is over
 
+  inc1 = pos_a; //you can only set a variable equal to another in setup or loop. You cant do it in initialization section above
+
+} //setup is over
 
 void loop() {
   update_controls();
   current_time = millis();
-
-  prev_reading[0] = current_button_reading[0];
-  current_button_reading[0] = buttonRead(0);
-
-  if (prev_reading[0] == 1 && current_button_reading[0] == 0) {// 1 is not pressed 0 is pressed
-    random_mode = !random_mode; //only works if you are toggling between 0 and 1
-  }
-
-  prev_reading[1] = current_button_reading[1];
-  current_button_reading[1] = buttonRead(1);
-
-  if (prev_reading[1] == 1 && current_button_reading[1] == 0) {// 1 is not pressed 0 is pressed
-    playback_mode++;
-    if (playback_mode > 2) {
-      playback_mode = 0;
-    }
-  }
-
-
-  melody_rate = potRead(0) * 500.0;
+  melody_rate = potRead(0) * 500.0; //potRead returns 0-1.0
 
   pos_a = potRead(1) * 50.0;
   pos_b = potRead(2) * 50.0;
 
-  prev_direction1 = direction1; //remeber what it was last loop
-
-  if (pos_a > pos_b) { //update direction1
+  if (pos_a > pos_b) {  
     direction1 = 1;
   }
   else {
     direction1 = 0;
   }
 
-  if (prev_direction1 != direction1) { //We can't constantly cahnges the waves in the melody_rate secion bellow as it will create noise. being also sets the phase to 0
-    if (direction1 == 1) {
-      waveform1.begin(WAVEFORM_SAWTOOTH);
-    }
-    if (direction1 == 0) {
-      waveform1.begin(WAVEFORM_SINE);
-    }
-  }
-
-  if (current_time - prev_time[1] > melody_rate) { // chage frequence ever 200 milliseconds
+  if (current_time - prev_time[1] > melody_rate) { 
     prev_time[1] = current_time;
-
-    if (direction1 == 1) { //notes are rising...
-      if (random_mode == 0) {
-        dice1 = random(0, 5); //0-4
-      }
-      if (random_mode == 1) {
-        dice1 = 1;
-      }
-      inc1 += dice1; //same as saying inc1=inc1+2;
-      if (inc1 > pos_a) { //.. so we only need to check when it hits the top.
+    
+    if (direction1 == 1) { 
+      inc1+=2; //same as saying inc1=inc1+2;
+      //inc1 can't go past pos_a but it will for a brief moment before it gets to this if statement
+      // but that's fine as we only use inc1 to select a position in the array after the if
+      if (inc1 > pos_a) { 
         inc1 = pos_b;
       }
     }
-
+    
     if (direction1 == 0) {
-      if (random_mode == 0) {
-        dice1 = random(0, 5); //0-4
-      }
-      if (random_mode == 1) {
-        dice1 = 1;
-      }
-      inc1 -= dice1; //same as saying inc1=inc1-2;
-
+      inc1-=2; //same as saying inc1=inc1-2;
       if (inc1 < pos_a) {
         inc1 = pos_b;
       }
     }
 
 
-    if (direction1 == 1) {
-      ra1 = random(pos_b, pos_a); //it only works if firdt is smaller than second so we put it up here were already doing that!
-    }
-    if (direction1 == 0) {
-      ra1 = random(pos_a, pos_b);
-    }
-    ra2 = major[ra1];
-    modulo_inc1 = inc1 % 8; //cant go over 7
-    melody_inc1 = melody1[modulo_inc1];
-    major_inc1 = major[inc1];
+    major_inc1 = major[inc1]; //select a position in the array "major" with inc1...
 
-    if (playback_mode == 1) {
-      final_inc1 = melody_inc1;
-    }
-    if (playback_mode == 0) {
-      final_inc1 = major_inc1;
-    }
-    if (playback_mode == 2) {
-      final_inc1 = ra2;
-    }
+    freq[0] = chromatic[major_inc1]; //...and use it to select a potion in chromatic
+    freq[1] = chromatic[major_inc1] * 2.01; 
 
+    //freq[1] = chromatic[major_inc1] + 200.0; //sounds odd and they move at separate rates
 
-    freq[0] = chromatic[final_inc1];
-    freq[1] = chromatic[final_inc1] / 2.01; // locted togeter, one is an octae down
+    //Always multiply when working with notes if you want them to stay proportional to each other.
+    // if we just added instead of multiplying freq[1] would more at a different rate than freq[0]
+    //Multiply or divide by 2s to go up or down octaves. the .01 detunes it slightly to add some more interest to the sound. 
 
-    //freq[1] = chromatic[major_inc1] + 200.0; //sounds odd and they move at seperate rates
-    waveform1.frequency(freq[0]);
+    waveform1.frequency(freq[0]); //then finally set the oscillators to these frequencies. 
     waveform2.frequency(freq[1]);
 
-  }
-
-  if (current_time - prev_time[3] > 30) {
-    prev_time[3] = current_time;
-    hue1 = playback_mode / 5.0;
-    set_LED(0, hue1, 1.0, 1.0); //(led select,hue,saturation,brightness) H S B and 0-1
-    set_LED(1, .6, 1.0, random_mode);
-    LEDs.show(); //must be done to actually send the info to the LEDs 
   }
 
   if (current_time - prev_time[2] > 100 && 1) { //&& is also. 0 means it wont happen, 1 will
@@ -225,14 +154,6 @@ void loop() {
     Serial.println(pos_b);
     Serial.print("inc1 ");
     Serial.println(inc1);
-    Serial.print("modulo_inc1 ");
-    Serial.println(modulo_inc1);
-    Serial.print("playback_mode ");
-    Serial.println(playback_mode);
-    Serial.print("random_mode ");
-    Serial.println(random_mode);
-    Serial.print("ra1 ");
-    Serial.println(ra1);
     Serial.println();
 
   }

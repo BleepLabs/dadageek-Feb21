@@ -95,7 +95,7 @@ void setup() {
   mixer1.gain(1, 0);
   mixer1.gain(2, 0);
   mixer1.gain(3, 0);
-  inc1 = pos_a; //you can only set a varible equal to another in setup or loop. Cant do it in initilization zone above
+  inc1 = pos_a;
 } //setup is over
 
 
@@ -107,7 +107,7 @@ void loop() {
   current_button_reading[0] = buttonRead(0);
 
   if (prev_reading[0] == 1 && current_button_reading[0] == 0) {// 1 is not pressed 0 is pressed
-    random_mode = !random_mode; //only works if you are toggling between 0 and 1
+    random_mode = !random_mode; //the variable is set to the opposite of the variable. only works if you are toggling between 0 and 1 
   }
 
   prev_reading[1] = current_button_reading[1];
@@ -126,16 +126,16 @@ void loop() {
   pos_a = potRead(1) * 50.0;
   pos_b = potRead(2) * 50.0;
 
-  prev_direction1 = direction1; //remeber what it was last loop
+  prev_direction1 = direction1; 
 
-  if (pos_a > pos_b) { //update direction1
+  if (pos_a > pos_b) {
     direction1 = 1;
   }
   else {
     direction1 = 0;
   }
 
-  if (prev_direction1 != direction1) { //We can't constantly cahnges the waves in the melody_rate secion bellow as it will create noise. being also sets the phase to 0
+  if (prev_direction1 != direction1) { 
     if (direction1 == 1) {
       waveform1.begin(WAVEFORM_SAWTOOTH);
     }
@@ -144,18 +144,18 @@ void loop() {
     }
   }
 
-  if (current_time - prev_time[1] > melody_rate) { // chage frequence ever 200 milliseconds
+  if (current_time - prev_time[1] > melody_rate) { 
     prev_time[1] = current_time;
 
-    if (direction1 == 1) { //notes are rising...
+    if (direction1 == 1) { 
       if (random_mode == 0) {
-        dice1 = random(0, 5); //0-4
+        dice1 = random(0, 5);
       }
       if (random_mode == 1) {
         dice1 = 1;
       }
-      inc1 += dice1; //same as saying inc1=inc1+2;
-      if (inc1 > pos_a) { //.. so we only need to check when it hits the top.
+      inc1 += dice1; 
+      if (inc1 > pos_a) { 
         inc1 = pos_b;
       }
     }
@@ -167,7 +167,7 @@ void loop() {
       if (random_mode == 1) {
         dice1 = 1;
       }
-      inc1 -= dice1; //same as saying inc1=inc1-2;
+      inc1 -= dice1; 
 
       if (inc1 < pos_a) {
         inc1 = pos_b;
@@ -175,12 +175,14 @@ void loop() {
     }
 
 
-    if (direction1 == 1) {
-      ra1 = random(pos_b, pos_a); //it only works if firdt is smaller than second so we put it up here were already doing that!
+    if (direction1 == 1) { // we do have a line just like this about but it only occurs when the direction changes, this is checked every melody_rate amount of time
+      ra1 = random(pos_b, pos_a); //only works if the first value is less than the second
     }
     if (direction1 == 0) {
       ra1 = random(pos_a, pos_b);
     }
+
+    //several different arrays spitting out notes
     ra2 = major[ra1];
     modulo_inc1 = inc1 % 8; //cant go over 7
     melody_inc1 = melody1[modulo_inc1];
@@ -198,9 +200,7 @@ void loop() {
 
 
     freq[0] = chromatic[final_inc1];
-    freq[1] = chromatic[final_inc1] / 2.01; // locted togeter, one is an octae down
-
-    //freq[1] = chromatic[major_inc1] + 200.0; //sounds odd and they move at seperate rates
+    freq[1] = chromatic[final_inc1] / 2.01; 
     waveform1.frequency(freq[0]);
     waveform2.frequency(freq[1]);
 

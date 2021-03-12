@@ -91,7 +91,7 @@ void setup() {
   mixer1.gain(1, 0);
   mixer1.gain(2, 0);
   mixer1.gain(3, 0);
-  inc1 = pos_a; //you can only set a varible equal to another in setup or loop. Cant do it in initilization zone above
+  inc1 = pos_a; 
 } //setup is over
 
 void loop() {
@@ -102,16 +102,16 @@ void loop() {
   pos_a = potRead(1) * 50.0;
   pos_b = potRead(2) * 50.0;
 
-  prev_direction1 = direction1; //remeber what it was last loop
+  prev_direction1 = direction1; //remember what it was last loop
 
-  if (pos_a > pos_b) { //update direction1
+  if (pos_a > pos_b) { //update direction
     direction1 = 1;
   }
   else {
     direction1 = 0;
   }
 
-  if (prev_direction1 != direction1) { //We can't constantly cahnges the waves in the melody_rate secion bellow as it will create noise. being also sets the phase to 0
+  if (prev_direction1 != direction1) { 
     if (direction1 == 1) {
       waveform1.begin(WAVEFORM_SAWTOOTH);
     }
@@ -120,35 +120,35 @@ void loop() {
     }
   }
 
-  if (current_time - prev_time[1] > melody_rate) { // chage frequence ever 200 milliseconds
+  if (current_time - prev_time[1] > melody_rate) { 
     prev_time[1] = current_time;
 
-    if (direction1 == 1) { //notes are rising...
-      dice1 = random(0, 5); //0-4
-      inc1 += 1; //same as saying inc1=inc1+2;
-      if (inc1 > pos_a) { //.. so we only need to check when it hits the top.
+    if (direction1 == 1) { 
+      dice1 = random(0, 5); 
+      inc1 += 1; 
+      if (inc1 > pos_a) { 
         inc1 = pos_b;
       }
     }
 
     if (direction1 == 0) {
-      dice2 = random(0, 4); //0-3
-      inc1 -= 1; //same as saying inc1=inc1-2;
+      dice2 = random(0, 4); 
+      inc1 -= 1; 
 
       if (inc1 < pos_a) {
         inc1 = pos_b;
       }
     }
 
-    ///diceses3 = random(pos_a, pos_b);
-    //major_inc1 = major[diceses3];
-    modulo_inc1 = inc1 % 8; //cant go over 7
-    melody_inc1 = melody1[modulo_inc1];
+    //% is modulo aka remainder https://www.arduino.cc/reference/en/language/structure/arithmetic-operators/remainder/
+    // this means inc1 can go up forever but modulo_inc1 will just go from 0-7
+    modulo_inc1 = inc1 % 8; 
+    
+    melody_inc1 = melody1[modulo_inc1]; //instead of stepping through major lest use the arbitrary numbers from another array
     major_inc1 = major[inc1];
 
     freq[0] = chromatic[melody_inc1];
-    freq[1] = chromatic[melody_inc1] / 2.01; // locted togeter, one is an octae down
-    //freq[1] = chromatic[major_inc1] + 200.0; //sounds odd and they move at seperate rates
+    freq[1] = chromatic[melody_inc1] / 2.01; 
     waveform1.frequency(freq[0]);
     waveform2.frequency(freq[1]);
 
@@ -176,7 +176,7 @@ void loop() {
 
     //Here we print out the usage of the audio library
     // If we go over 90% processor usage or get near the value of memory blocks we set aside in the setup we'll have issues or crash.
-    // If you're using too many block, jut increas the number up top untill you're over it by a few
+    // If you're using too many block, jut increase the number up top until you're over it by a few
     Serial.print("processor: ");
     Serial.print(AudioProcessorUsageMax());
     Serial.print("%    Memory: ");

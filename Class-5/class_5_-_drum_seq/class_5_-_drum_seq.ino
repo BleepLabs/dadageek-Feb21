@@ -103,15 +103,16 @@ void setup() {
   mixer1.gain(2, .5);
   mixer1.gain(3, .5);
 
-  drum1.frequency(220);
-  drum1.length(500);
-  drum1.pitchMod(.8);
+
+  drum1.frequency(220); // initial frequency of the sound
+  drum1.length(500); //now long it takes to fade out
+  drum1.pitchMod(.8); //if it's above .5 the pitch decreases over time. 1.0 would be a very quick drop, 0 a quick rise
 
   drum2.frequency(440);
   drum2.length(50);
   drum2.pitchMod(.25);
 
-  inc1 = pos_a; //you can only set a varible equal to another in setup or loop. Cant do it in initilization zone above
+
 } //setup is over
 
 
@@ -122,24 +123,26 @@ void loop() {
 
   melody_rate = potRead(0) * 500.0;
 
-  if (current_time - prev_time[1] > melody_rate) { // chage frequence ever 200 milliseconds
+  if (current_time - prev_time[1] > melody_rate) { 
     prev_time[1] = current_time;
 
-    inc1 += 1; //same as saying inc1=inc1+1;
-    if (inc1 > 7) { //.. so we only need to check when it hits the top.
+    inc1 += 1; 
+    if (inc1 > 7) { 
       inc1 = 0;
     }
 
     if (drum_seq1[inc1] == 1) {
-      drum1.noteOn();
-      set_LED(0, .5, 1.0, 1.0); // select , hue, sat,bright
+      drum1.noteOn(); //should only be done once, not repeatedly, just like envelope.noteOn. Unlike envelope there's no noteOff it just goes as long as to tell it to with .length
+
+      set_LED(0, .5, 1.0, 1.0); // (led select , hue, saturation ,bright)
     }
     else {
-      set_LED(0, .5, 1.0, 0);
+      set_LED(0, .5, 1.0, 0); //brightness 0 turns the LED off, regardless of the other values. 
     }
     
     if (drum_seq1[inc1] == 2) {
       drum2.noteOn();
+
       set_LED(1, .7, 1.0, 1.0);
     }
     else {
@@ -149,7 +152,7 @@ void loop() {
 
   if (current_time - prev_time[3] > 30) {
     prev_time[3] = current_time;
-    LEDs.show(); //must be done to actually send the info to the LEDs
+    LEDs.show(); //must be done to actually send the set_LED values to the LEDs
   }
 
   if (current_time - prev_time[2] > 100 && 1) { //&& is also. 0 means it wont happen, 1 will
