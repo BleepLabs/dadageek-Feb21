@@ -115,26 +115,26 @@ void loop() {
 
   if (prev_reading[1] == 1 && current_button_reading[1] == 0) {
     playback_mode = playback_mode + 1;
-    if (playback_mode > 2) {
+    if (playback_mode > 2) { //keep playback_mode in the range 0,1,2
       playback_mode = 0;
     }
   }
 
   melody_rate = potRead(0) * 500.0;
 
-  pos_a = potRead(1) * 64.0;
-  pos_b = potRead(2) * 64.0;
+  pos_a = potRead(1) * 50.0;
+  pos_b = potRead(2) * 50.0;
 
-  prev_direction1 = direction1;
+  prev_direction1 = direction1; //remeber what direction1 is right now
 
-  if (pos_a > pos_b) {
+  if (pos_a > pos_b) { //update direction1 baes on the position pots 
     direction1 = 1;
   }
   else {
     direction1 = 0;
   }
 
-  if (prev_direction1 != direction1) {
+  if (prev_direction1 != direction1) {  //only for the one loop where the direction changes do we change the shape 
     if (direction1 == 1) {
       waveform1.begin(WAVEFORM_SAWTOOTH);
     }
@@ -143,21 +143,20 @@ void loop() {
     }
   }
 
-  if (current_time - prev_time[1] > melody_rate) {
+
+  if (current_time - prev_time[1] > melody_rate) { //update all of this at the rate dontolled by the melody pot
     prev_time[1] = current_time;
 
     if (direction1 == 1) {
-
       if (random_mode == 0) {
         dice1 = random(0, 5);
       }
       if (random_mode == 1) {
         dice1 = 1;
       }
-
-      inc1 += dice1; // the mode changes is dice is set to 1 or is random
+      inc1 += dice1; //dice can either be random or static depending on the mode above
       if (inc1 > pos_a) {
-        inc1 = pos_b;
+        inc1 = pos_b; //go back to pos_b is the go over pos_a
       }
     }
 
@@ -170,23 +169,28 @@ void loop() {
       }
       inc1 -= dice1;
 
-      if (inc1 < pos_a) {
+      if (inc1 < pos_a) { //it's decending now so we don't want to go below pos_a 
         inc1 = pos_b;
       }
     }
 
 
     if (direction1 == 1) {
-      ra1 = random(pos_b, pos_a); //it only works if first is smaller than second
+      ra1 = random(pos_b, pos_a); //random only works if first value is smaller than the second
     }
     if (direction1 == 0) {
       ra1 = random(pos_a, pos_b);
     }
     
-    ra2 = major[ra1];
+    ra2 = major[ra1]; //ra1 will randomly pick a number in the major array
+    
+    major_inc1 = major[inc1]; //the incment we've been maing go up or down will coose a position in the major array
+
     modulo_inc1 = inc1 % 8; //cant go over 7
-    melody_inc1 = melody1[modulo_inc1];
-    major_inc1 = major[inc1];
+    melody_inc1 = melody1[modulo_inc1]; //the the inc1 that can only go through 0-7 is noy selecting a position in the melody1 array
+
+    //all thesee of these selects notes to play, not frequencies
+    // all thee are calculated but only one will be set to "final_inc1"
 
     if (playback_mode == 1) {
       final_inc1 = melody_inc1;
@@ -197,14 +201,15 @@ void loop() {
     if (playback_mode == 2) {
       final_inc1 = ra2;
     }
-
-
+  
+    //final_inc1 goes into the chromatic array to return frequeic of the notes.
     freq[0] = chromatic[final_inc1];
+    //divide the frequency by 2 to get an octave lower and .01 to detune it a little to make it sound more interesting 
     freq[1] = chromatic[final_inc1] / 2.01;
     waveform1.frequency(freq[0]);
     waveform2.frequency(freq[1]);
 
-  }
+  } //melody timing if is over
   
 /////////////////////////////////////////////////////////////////////////////////////// LED
 
@@ -213,7 +218,7 @@ void loop() {
     prev_time[3] = current_time;
     hue1 = playback_mode / 5.0;
 
-    float pot_hue = potRead(4);
+    float pot_hue = potRead(4);  //use the same pots to control one LED
     float pot_sat = potRead(5);
     float pot_b = potRead(6);
     
