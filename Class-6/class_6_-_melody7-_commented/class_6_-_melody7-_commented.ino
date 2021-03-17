@@ -1,10 +1,4 @@
-// The block we copied from the tool is pasted below
-// design tool: https://www.pjrc.com/teensy/gui/
-
-// "#include" means add another file to our code
-// So far we've been copy and pasting things in but we can just tell our code to look
-// in a library for more functions and data
-// These are all necessary to get audio working but we don't need to do anything besides include them
+//using arrays of values to play sequences of notes on two oscillators
 
 #include <Audio.h>
 #include <Wire.h>
@@ -125,9 +119,9 @@ void loop() {
   pos_a = potRead(1) * 50.0;
   pos_b = potRead(2) * 50.0;
 
-  prev_direction1 = direction1; //remeber what direction1 is right now
+  prev_direction1 = direction1; //remember what direction is right now
 
-  if (pos_a > pos_b) { //update direction1 baes on the position pots 
+  if (pos_a > pos_b) { //update direction based on the position pots 
     direction1 = 1;
   }
   else {
@@ -144,7 +138,7 @@ void loop() {
   }
 
 
-  if (current_time - prev_time[1] > melody_rate) { //update all of this at the rate dontolled by the melody pot
+  if (current_time - prev_time[1] > melody_rate) { //update all of this at the rate controlled by the melody pot
     prev_time[1] = current_time;
 
     if (direction1 == 1) {
@@ -169,7 +163,7 @@ void loop() {
       }
       inc1 -= dice1;
 
-      if (inc1 < pos_a) { //it's decending now so we don't want to go below pos_a 
+      if (inc1 < pos_a) { //it's descending now so we don't want to go below pos_a 
         inc1 = pos_b;
       }
     }
@@ -184,13 +178,13 @@ void loop() {
     
     ra2 = major[ra1]; //ra1 will randomly pick a number in the major array
     
-    major_inc1 = major[inc1]; //the incment we've been maing go up or down will coose a position in the major array
+    major_inc1 = major[inc1]; //the increment we've been making go up or down will choose a position in the major array
 
     modulo_inc1 = inc1 % 8; //cant go over 7
     melody_inc1 = melody1[modulo_inc1]; //the the inc1 that can only go through 0-7 is noy selecting a position in the melody1 array
 
-    //all thesee of these selects notes to play, not frequencies
-    // all thee are calculated but only one will be set to "final_inc1"
+    //We're selecting notes on the piano  to play right now, not frequencies
+    // one will be set to "final_inc1"
 
     if (playback_mode == 1) {
       final_inc1 = melody_inc1;
@@ -202,7 +196,7 @@ void loop() {
       final_inc1 = ra2;
     }
   
-    //final_inc1 goes into the chromatic array to return frequeic of the notes.
+    //final_inc1 goes into the chromatic array to return frequency of the notes.
     freq[0] = chromatic[final_inc1];
     //divide the frequency by 2 to get an octave lower and .01 to detune it a little to make it sound more interesting 
     freq[1] = chromatic[final_inc1] / 2.01;

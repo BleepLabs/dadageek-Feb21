@@ -1,3 +1,9 @@
+/*
+  the audio input is sent through a multiply effect, modulated by two oscillators, then the two filters
+
+*/
+
+
 // The block we copied from the tool is pasted below
 // design tool: https://www.pjrc.com/teensy/gui/
 
@@ -12,32 +18,29 @@
 #include <SerialFlash.h>
 
 // GUItool: begin automatically generated code
-AudioSynthWaveform       waveform2;      //xy=95,152
-AudioSynthWaveform       waveform1;      //xy=111,84
-AudioInputI2S            i2s2;           //xy=117,311
-AudioSynthWaveform       waveform3;      //xy=233,394
-AudioMixer4              mixer3;         //xy=291,197
-AudioAnalyzePeak         peak1;          //xy=387,355
-AudioFilterStateVariable filter1;        //xy=435,81
-AudioMixer4              mixer1;         //xy=487,234
-AudioFilterStateVariable filter2;        //xy=596,70
-AudioMixer4              mixer2;         //xy=712,219
-AudioOutputI2S           i2s1;           //xy=886,112
+AudioSynthWaveform       waveform2;      //xy=135,209
+AudioSynthWaveform       waveform1;      //xy=151,141
+AudioInputI2S            i2s2;           //xy=157,368
+AudioMixer4              mixer3;         //xy=306,226
+AudioEffectMultiply      multiply1;      //xy=340,334
+AudioFilterStateVariable filter1;        //xy=475,138
+AudioMixer4              mixer1;         //xy=527,291
+AudioFilterStateVariable filter2;        //xy=636,127
+AudioMixer4              mixer2;         //xy=752,276
+AudioOutputI2S           i2s1;           //xy=926,169
 AudioConnection          patchCord1(waveform2, 0, mixer3, 1);
 AudioConnection          patchCord2(waveform1, 0, mixer3, 0);
-AudioConnection          patchCord3(i2s2, 0, mixer3, 2);
-AudioConnection          patchCord4(waveform3, peak1);
-AudioConnection          patchCord5(mixer3, 0, mixer1, 0);
+AudioConnection          patchCord3(i2s2, 0, multiply1, 1);
+AudioConnection          patchCord4(mixer3, 0, multiply1, 0);
+AudioConnection          patchCord5(multiply1, 0, mixer1, 0);
 AudioConnection          patchCord6(filter1, 0, filter2, 0);
 AudioConnection          patchCord7(mixer1, 0, filter1, 0);
 AudioConnection          patchCord8(mixer1, 0, mixer2, 1);
 AudioConnection          patchCord9(filter2, 2, mixer2, 0);
 AudioConnection          patchCord10(mixer2, 0, i2s1, 0);
 AudioConnection          patchCord11(mixer2, 0, i2s1, 1);
-AudioControlSGTL5000     sgtl5000_1;     //xy=709,373
+AudioControlSGTL5000     sgtl5000_1;     //xy=749,430
 // GUItool: end automatically generated code
-
-
 
 
 #include "bleep_base.h" //Then we can add this line that we will still need
@@ -103,7 +106,6 @@ void setup() {
   // See the tool for more info https://www.pjrc.com/teensy/gui/?info=AudioSynthWaveform
   waveform1.begin(1, 220.0, WAVEFORM_SINE);
   waveform2.begin(1, 440.0, WAVEFORM_SINE);
-  waveform3.begin(1, 440.0, WAVEFORM_SINE);
 
   //The mixer has four inputs we can change the volume of
   // gain.(channel from 0 to 3, gain from 0.0 to a large number)
@@ -111,21 +113,23 @@ void setup() {
   // .5 would be half volume and 2 would be double
   // Since we have two oscillators coming in that are already "1" We should take them down by half so we don't clip.
   // If you go over "1" The top or bottom of the wave is just slammed against a wall
-  mixer1.gain(0, .8);
+  mixer1.gain(0, .8); //before going into the filters, turn down the amplitude a little as the resonace will add to it and maybe clip
   mixer1.gain(1, 0);
   mixer1.gain(2, 0);
   mixer1.gain(3, 0);
 
-  mixer2.gain(0, 0);
+  mixer2.gain(0, 0); //these will be set with pots later so it's not really needed here
   mixer2.gain(1, 0);
   mixer2.gain(2, 0);
   mixer2.gain(3, 0);
 
-  mixer3.gain(0, 1);
-  mixer3.gain(1, 1);
+  mixer3.gain(0, .5); //two oscillators going to the multiply effect
+  mixer3.gain(1, .5);
   mixer3.gain(2, 0);
   mixer3.gain(3, 0);
 
+  //resonance, aka feedback or q, makes the harmonics around the cutoff frequency louder
+  // over .7 and the resonance will start to come out.
   filter1.resonance(3.0);
   filter2.resonance(3.0);
 
@@ -136,14 +140,16 @@ void loop() {
   update_controls();
   current_time = millis();
 
-  filter_freq = (potRead(4) * ra2 * 20.0) ;
+  filter_freq = (potRead(4) * 10000.0) ; //just pot control
   filter1.frequency(filter_freq);
   filter_freq_2 = (potRead(5) * 10000);
   filter2.frequency(filter_freq_2);
 
-
-  mixer2.gain(0, potRead(6)); //0 to 1
-  mixer2.gain(1, (potRead(7) * 2.0) - 1.0); //-1.0 to 1.0
+  //the filter has 3 outs, low pass, high pass and band pass
+  // if you combine the signals you'll get some interesting new harmonics as some frequencies will be increased and decreased.
+  // inverting the phase of one by having the mixer negative will change what is phased in our out
+  mixer2.gain(0, potRead(6)); //0 to 1 wet signal from filters
+  mixer2.gain(1, (potRead(7) * 2.0) - 1.0); //-1.0 to 1.0 dry signal from oscillators
 
   prev_reading[0] = current_button_reading[0];
   current_button_reading[0] = buttonRead(0);
@@ -162,99 +168,18 @@ void loop() {
     }
   }
 
-  waveform3.frequency(potRead(0) * 50.0);
-
-  if (peak1.available()) {
-    lfo = peak1.read() * 10.0;
-  }
-
-  //melody_rate = potRead(0) * 500.0;
-  melody_rate = 200;
+  melody_rate = 200; //fix the melody rate as we're out of pots and might also just use a static note
 
   pos_a = potRead(1) * 50.0;
   pos_b = potRead(2) * 50.0;
 
-  prev_direction1 = direction1;
+  freq[0] = potRead(3) * 100.0;
+  freq[1] = potRead(4) * 10.0;
 
-  if (pos_a > pos_b) {
-    direction1 = 1;
-  }
-  else {
-    direction1 = 0;
-  }
-
-  if (prev_direction1 != direction1) {
-    if (direction1 == 1) {
-      waveform1.begin(WAVEFORM_SAWTOOTH);
-    }
-    if (direction1 == 0) {
-      waveform1.begin(WAVEFORM_SINE);
-    }
-  }
-
-  if (current_time - prev_time[1] > melody_rate) {
-    prev_time[1] = current_time;
-
-    if (direction1 == 1) {
-
-      if (random_mode == 0) {
-        dice1 = random(0, 5);
-      }
-      if (random_mode == 1) {
-        dice1 = 1;
-      }
-
-      inc1 += dice1; // the mode changes is dice is set to 1 or is random
-      if (inc1 > pos_a) {
-        inc1 = pos_b;
-      }
-    }
-
-    if (direction1 == 0) {
-      if (random_mode == 0) {
-        dice1 = random(0, 5);
-      }
-      if (random_mode == 1) {
-        dice1 = 1;
-      }
-      inc1 -= dice1;
-
-      if (inc1 < pos_a) {
-        inc1 = pos_b;
-      }
-    }
+  waveform1.frequency(freq[0]); //the two oscillators that will multiply aka AM or ring-mod the audio input
+  waveform2.frequency(freq[1]);
 
 
-    if (direction1 == 1) {
-      ra1 = random(pos_b, pos_a); //it only works if first is smaller than second
-    }
-    if (direction1 == 0) {
-      ra1 = random(pos_a, pos_b);
-    }
-
-    ra2 = major[ra1];
-    modulo_inc1 = inc1 % 8; //cant go over 7
-    melody_inc1 = melody1[modulo_inc1];
-    major_inc1 = major[inc1];
-
-    if (playback_mode == 1) {
-      final_inc1 = melody_inc1;
-    }
-    if (playback_mode == 0) {
-      final_inc1 = major_inc1;
-    }
-    if (playback_mode == 2) {
-      final_inc1 = ra2;
-    }
-
-
-    freq[0] = chromatic[20];
-    freq[1] = chromatic[20] / 2.00;
-
-    waveform1.frequency(freq[0]);
-    waveform2.frequency(freq[1]);
-
-  }
 
   /////////////////////////////////////////////////////////////////////////////////////// LED
 
@@ -264,13 +189,16 @@ void loop() {
     hue1 = playback_mode / 5.0;
 
     float pot_hue = potRead(4);
+    float pot_hue2 = pot_hue + .2;
+    if (pot_hue2 > 1.0) {
+      pot_hue2 -= 1.0; //you can't do modulo on floats but if it's not wrapping around more than once this works well
+    }
     float pot_sat = potRead(5);
     float pot_b = potRead(6);
 
     //these are used to set the leds but they only change to these values when "LEDs.show();" is executed
     set_LED(0, pot_hue, pot_sat, pot_b); //set_LED(led select,hue,saturation,brightness) H S B are all 0-1.0
-    set_LED(1, .6, 1.0, random_mode);
-    set_LED(2, .6, 1.0, random_mode);
+    set_LED(1, pot_hue2, pot_sat, pot_b);
 
     LEDs.show(); //must be done to actually send the data to the LEDs
   }
@@ -278,34 +206,12 @@ void loop() {
   ///////////////////////////////////////////////////////////////////////////////////// print town
 
 
-  if (current_time - prev_time[2] > 100 && 1) { //&& is also. 0 means it wont happen, 1 will
-    prev_time[2] = current_time;
-//    Serial.print("direction1 ");
-//    Serial.println(direction1);
-//    Serial.print("pos_a ");
-//    Serial.println(pos_a);
-//    Serial.print("pos_b ");
-//    Serial.println(pos_b);
-//    Serial.print("inc1 ");
-//    Serial.println(inc1);
-//    Serial.print("modulo_inc1 ");
-//    Serial.println(modulo_inc1);
-//    Serial.print("playback_mode ");
-//    Serial.println(playback_mode);
-//    Serial.print("random_mode ");
-//    Serial.println(random_mode);
-//    Serial.print("ra1 ");
-//    Serial.println(ra1);
-    Serial.println(lfo);
-  }
-
-
   if (current_time - prev_time[0] > 500 && 0) { //&& is also. 0 means it wont happen, 1 will
     prev_time[0] = current_time;
 
     //Here we print out the usage of the audio library
     // If we go over 90% processor usage or get near the value of memory blocks we set aside in the setup we'll have issues or crash.
-    // If you're using too many block, jut increas the number up top untill you're over it by a few
+    // If you're using too many block, jut increase the number up top until you're over it by a few
     Serial.print("processor: ");
     Serial.print(AudioProcessorUsageMax());
     Serial.print("%    Memory: ");

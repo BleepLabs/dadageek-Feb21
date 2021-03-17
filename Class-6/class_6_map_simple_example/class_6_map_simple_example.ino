@@ -1,10 +1,6 @@
-// The block we copied from the tool is pasted below
-// design tool: https://www.pjrc.com/teensy/gui/
+//quickly showing how to use map() to change the range of pots
 
-// "#include" means add another file to our code
-// So far we've been copy and pasting things in but we can just tell our code to look
-// in a library for more functions and data
-// These are all necessary to get audio working but we don't need to do anything besides include them
+// https://www.arduino.cc/reference/en/language/functions/math/map/
 #include <Audio.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -12,14 +8,10 @@
 #include <SerialFlash.h>
 
 // GUItool: begin automatically generated code
-AudioInputI2S            i2s2;           //xy=188,318
 AudioSynthWaveform       waveform2;      //xy=197,225
 AudioSynthWaveform       waveform1;      //xy=220,180
-AudioAnalyzeNoteFrequency notefreq1;      //xy=403,321
 AudioMixer4              mixer1;         //xy=457,225
 AudioOutputI2S           i2s1;           //xy=681,207
-AudioConnection          patchCord1(i2s2, 0, notefreq1, 0);
-AudioConnection          patchCord2(i2s2, 0, mixer1, 2);
 AudioConnection          patchCord3(waveform2, 0, mixer1, 1);
 AudioConnection          patchCord4(waveform1, 0, mixer1, 0);
 AudioConnection          patchCord5(mixer1, 0, i2s1, 0);
@@ -84,7 +76,6 @@ void setup() {
   mixer1.gain(1, .5);
   mixer1.gain(2, 0);
   mixer1.gain(3, 0);
-  notefreq1.begin(.01);
 
 
 } //setup is over
@@ -94,17 +85,15 @@ void loop() {
   current_time = millis();
 
 
-  int raw1 = potReadRaw(0); //0-1023
-  if (raw1<512){
-    freq[0] = map(raw1,0,512,200,1000);
+  int raw1 = potReadRaw(0); //returns 0-1023
+  if (raw1<512){ //512 is the middle of the pot o tis only happens when its on the right side
+    freq[0] = map(raw1,0,512,200,1000); //map(input,origial low,origial high, desired low,desired high
   }
   if (raw1>=512){
     freq[0] = map(raw1,512,1023,1000,1200);
   }
     
   
-
-
 
   //We don't have to do anything in the loop since the audio library will jut keep doing what we told it in the setup
   if (current_time - prev_time[0] > 50) {
