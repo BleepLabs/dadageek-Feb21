@@ -1,6 +1,6 @@
 /*
   "simple" serial flash sampler
-  Find out more here 
+  Find out more here https://github.com/BleepLabs/dadageek-Feb21/wiki/Memory-types-and-sampling-to-serial-flash
   
   In this example one button is dedicated to erasing, one for recording and one playing.
   The bank they are all address is controlled by the pot.
