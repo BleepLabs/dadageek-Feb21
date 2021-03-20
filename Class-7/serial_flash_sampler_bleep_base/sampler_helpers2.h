@@ -1,3 +1,13 @@
+//this block is all sampler stuff and can be left alone
+#define getsize AUDIO_BLOCK_SAMPLES*2
+uint32_t rec_size = (sfblocks * 0x10000);
+int16_t rec_target, foffset, mode_timer_latch, rec_mode, mode, prev_bank_sel;
+uint32_t bankstart[number_of_banks];
+uint32_t samplelen[number_of_banks];
+byte bank_status[number_of_banks];
+uint32_t sfaddress, address;
+//end 
+
 int32_t prev[12];
 
 void save_sample_length(uint16_t slot, uint32_t to_save) {

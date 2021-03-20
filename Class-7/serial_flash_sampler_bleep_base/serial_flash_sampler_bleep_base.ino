@@ -15,11 +15,13 @@
    and get it into the sampler. Don't change thier names
 
   Sampler functions:
+  begin(1, 1.0, bankstart[bank_sel], samplelen[bank_sel]); amplitude,frequency,start location,length. location and length are always bankstart[bank_sel] and samplelen[bank_sel], cagme out the bank_sel with a independent vslue for weach one 
+  sample_play_loc(bankstart[bank_sel], samplelen[bank_sel]); same as begin, jsut switch out the number for bank_sel
+  sample_stop() play is pneshot so use this to stop it 
+  frequency(float 0-4.0) 1.0 plays it back at the rate is was recorded. .5 is half speed, 2 is 2x speed 
+  sample_loop(0 or 1) 1 to loop this sampler
+  sample_reverse(0 or 1) 1 to play it backwards
   
-  sample_loop(0 or 1); Loop this sampler
-  sample_reverse(0 or 1); play it backwards
-  
-
 
 */
 
@@ -67,24 +69,17 @@ AudioControlSGTL5000     sgtl5000_1;
 
 #include "bleep_base.h"
 
+//the order of the folling is importat. You can cahnge number of banks but leave the rest alone
 #define FlashChipSelect 6 //The flash chip uses SPI for communication. SPI pins can be shared but each decvice needs its onw selet pin
-
-//each block is 256kilobyte
+//each sfblocks is 256kilobyte
 //In 44.1kHz stereo that's just under 1.5 seconds
-//on the s25fl127 there are 64 blocks
-#define sfblocks 8
-#define number_of_banks 8 // 64/sfblocks
+// The chip were uising has 64  sfblocks
+#define number_of_banks 8 
+#define sfblocks  64/number_of_banks //evenly dostributes the blocks in the set number of banks. Off banks will make the last bank lenght a little differnt
+#include "sampler_helpers2.h"
+//end
 
-//leave these two alone plz
-#define getsize AUDIO_BLOCK_SAMPLES*2
-uint32_t rec_size = (sfblocks * 0x10000);
-
-int16_t rec_target, foffset, mode_timer_latch, rec_mode, mode, prev_bank_sel;
-uint32_t bankstart[number_of_banks];
-uint32_t samplelen[number_of_banks];
-byte bank_status[number_of_banks];
-uint32_t sfaddress, address;
-uint32_t mode_cm, mode_timer;
+//then its back to regualr definitions
 unsigned long current_time;
 unsigned long prev_time[12]; //an array of 12 variables all named "prev_time"
 int bank_sel;
@@ -92,10 +87,9 @@ float freq[4];
 float fstep1, fstep2;
 float vol;
 float vol_rec_mon;
-byte tick;
 
-//this must be included at the end of declarations I know its annoying
-#include "sampler_helpers2.h"
+
+
 
 
 void setup() {

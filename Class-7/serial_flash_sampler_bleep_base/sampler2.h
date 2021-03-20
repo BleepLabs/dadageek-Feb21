@@ -1,3 +1,7 @@
+/* 
+ *  tested on JM's hardware and works 10-16-20
+*/
+
 #ifndef synth_sampler_h_
 #define synth_sampler_h_
 
