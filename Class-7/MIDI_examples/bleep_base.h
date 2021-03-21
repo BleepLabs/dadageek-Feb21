@@ -1,11 +1,12 @@
-// all the functinons I made to check the controls and wok the LEDs live here
+// all the functions I made to check the controls and wok the LEDs live here
 // We'll talk about whats they are really doing on later in the course
+
 float max_brightness = .1; //change this to increase the max brightness of the LEDs. 1.0 is very bright
 
 
 
 #include <WS2812Serial.h>
-#define num_of_leds 2
+#define num_of_leds 2 //increase for more LEDs
 #define led_data_pin 14 // only these pins can be used on the Teensy 3.2:  1, 5, 8, 10, 31
 byte drawingMemory[num_of_leds * 3];       //  3 bytes per LED
 DMAMEM byte displayMemory[num_of_leds * 12]; // 12 bytes per LED
@@ -50,9 +51,6 @@ void start_bleep_base() {
   LEDs.setPixelColor(1, 0, 0, 0);
   LEDs.show(); // after we've set what we want all the LEDs to be we send the data out through this function
 
-
-  Serial.begin(57600);
-
   pinMode(analog_pin1, INPUT);
 
   pinMode(digital_read_pin, INPUT_PULLUP);
@@ -61,14 +59,14 @@ void start_bleep_base() {
   pinMode(ctrl_pin3, OUTPUT);
 
   adc->adc0->setAveraging(8);
-  adc->adc0->setResolution(10); // teensy 4 is 10b 0-1023
+  adc->adc0->setResolution(10); // Teensy 4 is 10b 0-1023
   // it can be any of the ADC_MED_SPEED enum: VERY_LOW_SPEED, LOW_SPEED, MED_SPEED, HIGH_SPEED or VERY_HIGH_SPEED
 
   adc->adc0->setConversionSpeed(ADC_CONVERSION_SPEED::LOW_SPEED); // change the conversion speed
   adc->adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::LOW_SPEED); // change the sampling speed
 
   adc->adc1->setAveraging(8);
-  adc->adc1->setResolution(10); // teensy 4 is 10b 0-1023
+  adc->adc1->setResolution(10); // Teensy 4 is 10b 0-1023
   // it can be any of the ADC_MED_SPEED enum: VERY_LOW_SPEED, LOW_SPEED, MED_SPEED, HIGH_SPEED or VERY_HIGH_SPEED
 
   adc->adc1->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED); // change the conversion speed
@@ -119,7 +117,7 @@ unsigned int smooth(byte sel, unsigned int samples, unsigned int raw_in) {
     }
   }
 
-  //I cahnged this to jsut 2 off the top and bottom
+  //I changed this to just 3 off the top and bottom
   bottom = 3;
   top = samples - 3;
   k = 0;
@@ -230,7 +228,6 @@ void update_controls() {
 
   }
 }
-
 
 
 
