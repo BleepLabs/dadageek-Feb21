@@ -139,7 +139,6 @@ void loop() {
       set_LED(ledj, hue2, lfo2, lfo3);
     }
 
-
     LEDs.show();
 
   }
