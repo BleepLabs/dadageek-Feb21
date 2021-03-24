@@ -1,10 +1,8 @@
-// The block we copied from the tool is pasted below
-// design tool: https://www.pjrc.com/teensy/gui/
+// talking to more LEDs using the header and reviewing for loops
+// LED info here https://github.com/BleepLabs/dadageek-Feb21/wiki/Using-LEDs-on-the-Bleep-Base
 
-// "#include" means add another file to our code
-// So far we've been copy and pasting things in but we can just tell our code to look
-// in a library for more functions and data
-// These are all necessary to get audio working but we don't need to do anything besides include them
+
+
 
 #include <Audio.h>
 #include <Wire.h>
@@ -39,10 +37,6 @@ float lfo1, lfo2, lfo3;
 
 void setup() {
   start_bleep_base(); //run this first in setup
-
-  //there's a lot we need to do in setup now but most of it is just copy paste.
-  // This first group should only be done in setup how much RAM to set aside for the audio library to use.
-  // The audio library uses blocks of a set size so this is not a percentage or kilobytes, just a kind of arbitrary number.
   // On our Teensy 4.0 we can go up to almost 2000 but that won't leave any RAM for anyone else.
   // It's usually the delay and reverb that hog it.
   AudioMemory(10);
@@ -59,7 +53,7 @@ void setup() {
   // For now lets set this one once and leave it alone.
   sgtl5000_1.volume(0.25);
 
-  //The line out has a seperate level control but it's not meant to be adjusted like the volume function above.
+  //The line out has a separate level control but it's not meant to be adjusted like the volume function above.
   // If you're not using the line out don't worry about it.
   sgtl5000_1.lineOutLevel(21); //11-32, the smaller the louder. 21 is about 2 Volts peak to peak
 
@@ -97,7 +91,7 @@ void loop() {
       lfo1 = 0;
     }
 
-    if (peak1.available()) {
+    if (peak1.available()) { //read the level of the audio waveforms and return 0-1.0
       lfo2 = peak1.read();
     }
     if (peak2.available()) {
@@ -105,13 +99,20 @@ void loop() {
     }
 
 
-    for (int ledj = 2; ledj < 8; ledj++) {
-      float hue1 = (ledj - 2) * .15;
-      float hue2 = hue1 + lfo1;
+    for (int ledj = 2; ledj < 8; ledj++) { //start at the 2nd led and go to the 7th. The first 2 leds are on the bleep base
+      
+      //ledj is incrementing so use it to make each LED a different color. 
+      // since this is all happening in the for loop the lights will be static though. Nothing outside the loop is changing it 
+      float hue1 = (ledj - 2) * .15; 
+
+      float hue2 = hue1 + lfo1; //lfo is going at it's own rate, outside of this for loop so the lights will change
       if (hue2 >= 1.0) {
-        hue2 -= 1.0;
+        //rather than going back to 0, we subtract 1.0
+        // that way it cleanly goes around in a loop as thats how the hue rainbow works
+        // if it's 1.2, it comes out .2
+        hue2 -= 1.0; 
       }
-      set_LED(ledj, hue2, lfo2, lfo3);
+      set_LED(ledj, hue2, lfo2, lfo3); //(led to change, hue, satuuration,brightness)
     }
 
 

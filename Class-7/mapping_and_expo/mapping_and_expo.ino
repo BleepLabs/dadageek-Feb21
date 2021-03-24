@@ -36,7 +36,7 @@ AudioControlSGTL5000     sgtl5000_1;     //xy=611,393
 unsigned long current_time;
 unsigned long prev_time[8]; //an array of 8 variables all named "prev_time"
 float lfo1, lfo2, lfo3;
-float freq1, temp1, temp2, expo1;
+float freq1, temp1, temp2;
 void setup() {
   start_bleep_base(); //run this first in setup
 
@@ -91,75 +91,77 @@ void loop() {
   current_time = millis();
 
 
-  //freq1 = (1-potRead(0)) * 500;
-  temp1 = potRead(0);
-  if (temp1 < .5) {
-    freq1 = (temp1 * 2.0 * 200.0) + 50.0;
+  //this is the confusing way to do it with floats
+  temp1 = potRead(0); //0-1.0
+  if (temp1 < .5) {//if its on one side do this
+    //temp 1 is going from 0-.5 but we want it from 50-250
+    // multiply by 2 to get it to 0-1
+    // by 200 to get to 0-200
+    // add 50 to get 50-250
+    freq1 = (temp1 * 2.0 * 200.0) + 50.0; 
   }
   if (temp1 >= .5) {
+    //on the other side
+    //we want to start at 250 as thats where the other left off so add 250
+    //temp is starting at .5 so subtract that and get it to 0-1.0 by multiplying by 2
+    //we want it to go to 1000 so multiply by that
     freq1 = (((temp1 - .5) * 2.0) * 1000.0) + 250.0;
   }
 
-  temp2 = (1 - potRead(0)) * 2000.0;
-  if (temp2 < 500) {
-    freq1 = map(temp2, 0, 500, 200, 800); //map is only for integers
+  //or we could use map but it only takes integers
+  //map(input value, fromLow, fromHigh, toLow, toHigh)
+
+  int low_point = 200
+  int middle_point = 800
+  int high_point = 1200
+
+  temp2 = potRead(0) * 1000; //0 - 10000
+  if (temp2 < 500) {//on one side
+    //we start at 0 and go to 500 on this side but want 200-800
+    freq1 = map(temp2, 0, 500, low_point, middle_point); 
   }
   if (temp2 >= 500) {
-    freq1 = map(temp2, 500, 1000, 800, 1000);
-  }
-
-  //expo1 = powf((1 - potRead(0)) * 1000.0, 2) / powf(1000.0, 1);
-  expo1 = expo_converter(potRead(0), 2000, 3.5);
-
-  waveform1.frequency(expo1 + 220);
-
-
-
-  if (current_time - prev_time[1] > 10) {
-    prev_time[1] = current_time;
-    lfo1 += .02;
-    if (lfo1 >= 1.0) {
-      lfo1 = 0;
-    }
-
-    if (peak1.available()) {
-      lfo2 = peak1.read();
-    }
-    if (peak2.available()) {
-      lfo3 = peak2.read();
-    }
-
-
-    for (int ledj = 2; ledj < 8; ledj++) {
-      float hue1 = (ledj - 2) * .15;
-      float hue2 = hue1 + lfo1;
-      if (hue2 >= 1.0) {
-        hue2 -= 1.0;
-      }
-      set_LED(ledj, hue2, lfo2, lfo3);
-    }
-
-    LEDs.show();
-
+    //now we start at 500 and get to 1000. 800 is where the other left off
+    freq1 = map(temp2, 500, 1000, middle_point, high_point);
   }
 
 
-  //We don't have to do anything in the loop since the audio library will jut keep doing what we told it in the setup
+  //another way to map is with an exponential converter
+  // for audio, exponential curves sound more natural. 
+  // Pretty much every volume knob you use has an exponential response, with the lower numbers going by more quickly than the higher ones
+  // Heres a quick graph. You start and end at the same place but take a different route  http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiIoeF4yKS8oMTBeMSkiLCJjb2xvciI6IiMwMDAwMDAifSx7InR5cGUiOjAsImVxIjoiKHheMykvKDEwXjIpIiwiY29sb3IiOiIjMzkwOUQ5In0seyJ0eXBlIjowLCJlcSI6Iih4XjQpLygxMF4zKSIsImNvbG9yIjoiI0ZGODAwMCJ9LHsidHlwZSI6MCwiZXEiOiJ4IiwiY29sb3IiOiIjRkYwMDAwIn0seyJ0eXBlIjoxMDAwLCJ3aW5kb3ciOlsiMCIsIjEwIiwiMCIsIjEwIl19XQ--
+  
+  // to do this I mad a quick function at the bottom, outside the loop
+  // expo_converter(input for 0-1.0, high value you want to get to, curve);
+  // if curve is 1 its linear, <1 log >1 expo
+
+  expo1 = expo_converter(potRead(0), 1000, 2);
+
+
+  waveform1.frequency(freq1);
+
   if (current_time - prev_time[0] > 20) {
     prev_time[0] = current_time;
 
+    //prints the linear and exponential response from the same pot
     Serial.print(temp2);
     Serial.print(" ");
     Serial.println(expo1);
 
   }
 
+
+
 }// loop is over
+
 
 //input 0-1, returns 0-max in expo curve
 //max is 0 to whatever
 //if curve is 1 its linear, <1 log >1 expo
+
 float expo_converter(float input, float max1, float curve) {
-  float ex1 = powf((1.0 - input) * max1, curve) / powf(max1, curve - 1.0);
+  //powf is a more effeinct power for floats
+  // powf(base, exponent)
+  float ex1 = powf((1.0 - input) * max1, curve) / powf(max1, curve - 1.0); 
   return ex1;
 }

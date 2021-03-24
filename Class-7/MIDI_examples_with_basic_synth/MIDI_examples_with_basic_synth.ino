@@ -1,4 +1,6 @@
 /*
+  Here we control a basic synth with the MIDI inputs
+
   More info:
   DIN MIDI https://www.pjrc.com/teensy/td_libs_MIDI.html
   USB MIDI https://www.pjrc.com/teensy/td_midi.html
@@ -127,7 +129,14 @@ void loop() {
           Serial.print(dm_note);
           Serial.print("  velocity: ");
           Serial.println(dm_velocity);
-          env1_on = 1;
+          
+          
+           //don't do all the work here, just set a "flag"
+           // There are several places we will want to turn the envelopes on or off
+           // instead of copping that code to each place lets just turn a variable to 1, then do the work later on and turn it back to 0        
+          env1_on = 1; 
+        
+
         }
 
         if (dm_velocity == 0) { //some systems send velocity 0 as note off
@@ -289,22 +298,24 @@ void loop() {
   }
 
 
-  if (env1_off == 1) {
-    envelope1.noteOff();
-    set_LED(0, 0, 1, 0);
-    env1_off = 0;
-  }
-
+//after checking the midi , we check to see if we set these to 1
   if (env1_on == 1) {
 
-    //not a great way but does cahnge the freq
+    //this changes the frequencies but since it's multiplying it has more of an effect on higher notes, messing up the intervals between them
     //float transpose_freq = (potRead(7))*4.0;
     //float keybaorb_note =chromatic[dm_note];
     //float final_freq = keybaorb_note * transpose_freq;
 
+    //here we have three things controlling the note that finally gets played
+    // on pot goes from -50 to 50, shifting the notes up or down by one
+    // another pot shifts by octaves, shifting up 0,12,24,36,48
+    // then we have dm_note from DIN and um_note from USB. If we don't get info from one of them it will just be 0
+    // if we get both it would be combined 
+    // then we constrain it to the range of the chromatic array. You don't want to go looking outside of the bounds of an array
+    // finally we take this combined value and plug it into the chromatic array, resulting in a single note to set the oscillator to
     int transpose_note = (potRead(7) * 100) - 50;
     int octave_shift = (potRead(6) * 4);
-    int note_select = dm_note + transpose_note + (octave_shift * 12);
+    int note_select = dm_note + um_note+ transpose_note + (octave_shift * 12);
     if (note_select >= 87) {
       note_select = 87;
     }
@@ -315,9 +326,20 @@ void loop() {
 
     waveform1.frequency(final_freq);
     envelope1.noteOn();
-    env1_on = 0;
-    float hue1 = note_select / 87.0;
+    
+    float hue1 = note_select / 87.0; //set the an LED to match the note
     set_LED(0, hue1, 1, 1);
+
+    env1_on = 0;
+  }
+
+    if (env1_off == 1) { //the note off is much simpler
+    envelope1.noteOff();
+    //turn the led off by setting the brightness to 
+    //this means light will only be on for however long the "LEDs.show();" update rate as the note on and off are so short
+    set_LED(0, 0, 1, 0); 
+
+    env1_off = 0; //close the door behind us so this will only happen once when the note off is received
   }
 
   //////////////////////////
