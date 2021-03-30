@@ -44,7 +44,7 @@ AudioMixer4              mixer4;         //xy=470,599
 AudioMixer4              mixer3;         //xy=522,472
 AudioEffectDigitalCombine combine1;       //xy=621,566
 AudioMixer4              mixer1;         //xy=667,726
-AudioEffectTapeDelay         tapeDelay1;     //xy=670,907
+AudioEffectDelay         tapeDelay1;     //xy=670,907
 AudioSynthWaveform       lfo2;           //xy=730,359
 AudioSynthWaveform       lfo1;           //xy=742,424
 AudioFilterStateVariable filter2;        //xy=787,499
@@ -104,19 +104,15 @@ int rate1 = 30;
 int shift = 12;
 float hue2;
 
+float level;
+float lfo2_output, lfo1_output;
+
 //"const" means to store it in program memory, not RAM
 const float chromatic[88] = {55.00000728, 58.27047791, 61.73542083, 65.40639999, 69.29566692, 73.4162017, 77.78175623, 82.40690014, 87.30706942, 92.49861792, 97.99887197, 103.8261881, 110.0000146, 116.5409558, 123.4708417, 130.8128, 138.5913338, 146.8324034, 155.5635124, 164.8138003, 174.6141388, 184.9972358, 195.9977439, 207.6523763, 220.0000291, 233.0819116, 246.9416833, 261.6255999, 277.1826676, 293.6648067, 311.1270248, 329.6276005, 349.2282776, 369.9944716, 391.9954878, 415.3047525, 440.0000581, 466.1638231, 493.8833665, 523.2511997, 554.3653352, 587.3296134, 622.2540496, 659.2552009, 698.4565551, 739.9889431, 783.9909755, 830.6095048, 880.0001162, 932.3276461, 987.7667329, 1046.502399, 1108.73067, 1174.659227, 1244.508099, 1318.510402, 1396.91311, 1479.977886, 1567.981951, 1661.219009, 1760.000232, 1864.655292, 1975.533466, 2093.004798, 2217.46134, 2349.318453, 2489.016198, 2637.020803, 2793.82622, 2959.955772, 3135.963901, 3322.438019, 3520.000464, 3729.310584, 3951.066931, 4186.009596, 4434.92268, 4698.636906, 4978.032395, 5274.041605, 5587.652439, 5919.911543, 6271.927802, 6644.876037, 7040.000927, 7458.621167, 7902.133861, 8372.019192};
 
 void setup() {
   start_bleep_base(); //run this first in setup
 
-  LEDs.begin(); //must be done in setup for the LEDs to work.
-  LEDs.setPixelColor(0, 0, 0, 0);
-  LEDs.setPixelColor(1, 0, 0, 0);
-  LEDs.show(); // after we've set what we want all the LEDs to be we send the data out through this function
-
-  analogReadResolution(10); //0-1024 pot values
-  analogReadAveraging(32);  //smooth the readings a little
   AudioMemory(200);
 
   sgtl5000_1.enable(); //Turn the adapter board on
@@ -124,7 +120,6 @@ void setup() {
   //sgtl5000_1.micGain(63);
   sgtl5000_1.lineInLevel(13); //The volume of the input. Again we'll get to this later
   sgtl5000_1.volume(0.75);
-
 
   waveform1.begin(1, 220.0, WAVEFORM_SINE);
   waveform2.begin(1, 440.0, WAVEFORM_SINE);
@@ -148,7 +143,7 @@ void setup() {
   filter2.frequency(10000);
   filter2.resonance(4.0);
 
-  mixer1.gain(0, .6); //dealy input mixer - audio in
+  mixer1.gain(0, .6); //delay input mixer - audio in
 
   //begin(bank to store data in(integer array), size of that bank (integer), delay length(integer), reduction(integer), interpolation(integer))
   //bank, and size are all defines above, you jsut need to plug them in
@@ -174,21 +169,20 @@ void setup() {
 
 }
 
-float level;
-float lfo2_output, lfo1_output;
 void loop() {
   current_time = millis();
-
   update_controls();
 
   for (byte j = 0; j < 6; j++) { //make a little keybaord out of the 6 keys
     if (buttonState(j) == FELL) {
+      
       if (shift < 4) {
         shift = 4;
       }
       if (shift > 24) {
         shift = 24;
       }
+      
       freq[1] = chromatic[(j + shift) * 3];
       freq[2] = freq[1] * 2.01;
       freq[3] = freq[1] / 4.0;
@@ -206,7 +200,7 @@ void loop() {
   }
 
 
-  float fb2 = potRead(0) * -1.0;  //digital combine feedback. Pahse is flipped
+  float fb2 = potRead(0) * -1.0;  //digital combine feedback. Phase is flipped
   mixer4.gain(3, fb2);
 
   float temp1 = expo_converter(potRead(1), 18000.0, 2.0); //input, new max, curve
@@ -236,7 +230,7 @@ void loop() {
     freq[4] = potRead(6) * 20.0;
     waveform4.frequency(freq[4]);
     waveform4.amplitude(.4);
-    dc1.amplitude(.05);
+    dc1.amplitude(0);
     hue2 = .1; //change color
   }
   if (potRead(6) >= .5) {
@@ -277,7 +271,7 @@ void loop() {
     AudioMemoryUsageMaxReset();
     Serial.println();
   }
-}
+
 
 }// loop is over
 

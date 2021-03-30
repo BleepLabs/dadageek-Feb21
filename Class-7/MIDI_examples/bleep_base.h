@@ -6,8 +6,8 @@ float max_brightness = .1; //change this to increase the max brightness of the L
 
 
 #include <WS2812Serial.h>
-#define num_of_leds 2 //increase for more LEDs
-#define led_data_pin 14 // only these pins can be used on the Teensy 3.2:  1, 5, 8, 10, 31
+#define num_of_leds  20 //increase for more LEDs
+#define led_data_pin  14 // only these pins can be used on the Teensy 3.2:  1, 5, 8, 10, 31
 byte drawingMemory[num_of_leds * 3];       //  3 bytes per LED
 DMAMEM byte displayMemory[num_of_leds * 12]; // 12 bytes per LED
 WS2812Serial LEDs(num_of_leds, displayMemory, drawingMemory, led_data_pin, WS2812_GRB);
