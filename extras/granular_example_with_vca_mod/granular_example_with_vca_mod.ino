@@ -98,7 +98,7 @@ void loop() {
     granular1.stop();
   }
 
-  if (buttonState(1) == FELL) {
+  if (buttonState(1) == FELL) {   //
     float msec = potRead(0) * 200.0;
     granular1.beginPitchShift(msec);
   }
