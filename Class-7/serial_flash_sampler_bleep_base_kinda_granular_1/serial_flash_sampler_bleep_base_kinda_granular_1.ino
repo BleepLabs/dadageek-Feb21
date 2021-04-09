@@ -102,10 +102,10 @@ void setup() {
   delay(500); //wait a tiny bit so the chip is ready to go
 
   if (!SerialFlash.begin(FlashChipSelect)) {
-    while (1) { //don't continue if the chip isn't there
+   
       Serial.println("Unable to access SPI Flash chip");
       delay(1000);
-    }
+    
   }
 
   AudioMemory(15);
